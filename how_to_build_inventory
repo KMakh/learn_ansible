@@ -1,0 +1,190 @@
+yuml or ini format
+
+i'll use yuml
+
+inventory - list of managed nodes
+
+absible automatest tasks on managed nodes using inventories
+
+inventory defines the managed nodes and the variables associated with them
+
+i can use one or more inventory sources
+
+basic inventory file in YAML format
+
+```
+ungrouped:
+  hosts:
+    mail.example.com:
+webservers:
+  hosts:
+    foo.example.com:
+    bar.example.com:
+dbservers:
+  hosts:
+    one.example.com:
+    two.example.com:
+    three.example.com:
+```
+
+Every inventory has two default groups: all and ungrouped
+
+Every host always belongs to at least 2 groups
+
+Host can be in multiple groups
+
+"What Where When"
+
+What - An application, stack or microservice (for example, database servers, web servers, and so on).
+
+Where - A datacenter or region, to talk to local DNS, storage, and so on (for example, east, west).
+
+When - The development stage, to avoid testing on production resources (for example, prod, test).
+
+example:
+
+```
+ungrouped:
+  hosts:
+    mail.example.com:
+webservers:
+  hosts:
+    foo.example.com:
+    bar.example.com:
+dbservers:
+  hosts:
+    one.example.com:
+    two.example.com:
+    three.example.com:
+east:
+  hosts:
+    foo.example.com:
+    one.example.com:
+    two.example.com:
+west:
+  hosts:
+    bar.example.com:
+    three.example.com:
+prod:
+  hosts:
+    foo.example.com:
+    one.example.com:
+    two.example.com:
+test:
+  hosts:
+    bar.example.com:
+    three.example.com:
+```
+
+Parent/child relationships among groups:
+I can create group that includes smaller groups
+
+Properties:
+  - host in child group is also host in parent group
+  - no circular relationships
+  - multiple groups, but only one instance of host at runtime, ansible merges the data from multiple groups
+  - hosts and groups are global, new definition adds new information or overwrite any conflicting info with the latest given
+
+Range of hosts:
+
+```
+# ...
+  webservers:
+    hosts:
+      www[01:50].example.com:
+```
+
+Slices:
+
+```
+# ...
+  webservers:
+    hosts:
+      www[01:50:2].example.com:
+```
+2 is step - 01 03 05 etc
+
+```
+[databases]
+db-[a:f].example.com
+```
+
+multiple inventroy sources:
+```
+ansible-playbook get_logs.yml -i staging -i production
+```
+
+also can use directory with inventories in it, executes in alphabetical order
+
+```
+ansible-playbook example.yml -i inventory
+```
+
+can add variables to hosts:
+
+```
+atlanta:
+  hosts:
+    host1:
+      http_port: 80
+      maxRequestsPerChild: 808
+    host2:
+      http_port: 303
+      maxRequestsPerChild: 909
+```
+
+uniqe port for ssh:
+
+```
+# ...
+  hosts:
+    jumper:
+      ansible_port: 5555
+      ansible_host: 192.0.2.50
+```
+
+variable to many hosts - group variables:
+
+```
+atlanta:
+  hosts:
+    host1:
+    host2:
+  vars:
+    ntp_server: ntp.atlanta.example.com
+    proxy: proxy.atlanta.example.com
+```
+
+Can separate varibales into files
+
+The host_group_vars vars plugin loads host and group variable files by searching paths relative to the inventory source or the playbook file.
+If your inventory file at /etc/ansible/hosts contains a host named ‘foosball’ that belongs to two groups, ‘raleigh’ and ‘webservers’,
+that host will use variables in YAML files at the following locations:
+
+
+
+```
+/etc/ansible/group_vars/raleigh # can optionally end in '.yml', '.yaml', or '.json'
+/etc/ansible/group_vars/webservers
+/etc/ansible/host_vars/foosball
+```
+
+Merging varialbes:
+Order from lowest to highest:
+  - all group
+  - parent group
+  - child group
+  - host
+
+can set priorities in the group variable: ansible_group_priority
+
+```
+a_group:
+  vars:
+    testvar: a
+    ansible_group_priority: 10
+b_group:
+  vars:
+    testvar: b
+```
+default value is 1
