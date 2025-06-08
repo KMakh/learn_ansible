@@ -1,0 +1,8 @@
+myhosts:
+  hosts:
+    host_1:
+      ansible_host: hserver
+      ansible_user: hserver
+    host_2:
+      ansible_host: 92.113.151.52
+      ansible_user: admin
