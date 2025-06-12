@@ -1,0 +1,8 @@
+- name: Install htop on Docker containers
+  hosts: docker_containers
+  become: true
+  tasks:
+    - name: Install htop
+      apt:
+        name: htop
+        state: present
